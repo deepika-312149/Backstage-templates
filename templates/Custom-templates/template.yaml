@@ -1,94 +1,89 @@
-apiVersion scaffolder.backstage.iov1beta3
-kind Template
-
-metadata
-  name create-customer
-  title Create a new Customer
-  description Registers a customer with name, address, and phone in the catalog
-  tags [customer, crm]
-
-spec
-  owner team-crm
-  type customer
-
-  parameters
-    - title Customer information
-      required [customerName, address, phoneNumber, owner]
-      properties
-        customerName
-          title Customer name
-          type string
-          description Full name of the customer
-          pattern ^[a-zA-Z][a-zA-Z0-9 _-]$
-          uiautofocus true
-          uiplaceholder e.g. Acme Corporation
-        address
-          title Address
-          type string
-          description Full mailing address
-          uiwidget textarea
-          uioptions
-            rows 3
-          uiplaceholder 123 Main St, Hyderabad 500001, India
-        phoneNumber
-          title Phone number
-          type string
-          description Include country code, e.g. +91 98765 43210
-          pattern ^+[0-9 -()]{7,20}$
-          uiplaceholder +91 98765 43210
-        owner
-          title Owning team
-          type string
-          uifield OwnerPicker
-          uioptions
-            catalogFilter
-              kind Group
-
-    - title Repository
-      required [repoUrl]
-      properties
-        repoUrl
-          title Repository location
-          type string
-          uifield RepoUrlPicker
-          uioptions
-            allowedHosts [github.com]
-
-  steps
-    - id fetch-template
-      name Populate customer files
-      action fetchtemplate
-      input
-        url .skeleton
-        values
-          customerName ${{ parameters.customerName }}
-          address ${{ parameters.address }}
-          phoneNumber ${{ parameters.phoneNumber }}
-          owner ${{ parameters.owner }}
-          repoUrl ${{ parameters.repoUrl }}
-
-    - id publish
-      name Create GitHub repository
-      action publishgithub
-      input
-        allowedHosts [github.com]
-        description Customer record for ${{ parameters.customerName }}
-        repoUrl ${{ parameters.repoUrl }}
-        defaultBranch main
-        repoVisibility private
-
-    - id register
-      name Register customer in Catalog
-      action catalogregister
-      input
-        repoContentsUrl ${{ steps['publish'].output.repoContentsUrl }}
-        catalogInfoPath catalog-info.yaml
-
-  output
-    links
-      - title GitHub repository
-        url ${{ steps['publish'].output.remoteUrl }}
-        icon github
-      - title View in Catalog
-        icon catalog
-        entityRef ${{ steps['register'].output.entityRef }}
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-customer
+  title: Create a new Customer
+  description: Registers a customer with name, address and phone in the catalog
+  tags:
+    - customer
+    - crm
+spec:
+  owner: team-crm
+  type: customer
+  parameters:
+    - title: Customer information
+      required:
+        - customerName
+        - address
+        - phoneNumber
+        - owner
+      properties:
+        customerName:
+          title: Customer name
+          type: string
+          description: Full name of the customer
+          ui:autofocus: true
+        address:
+          title: Address
+          type: string
+          description: Full mailing address
+          ui:widget: textarea
+          ui:options:
+            rows: 3
+        phoneNumber:
+          title: Phone number
+          type: string
+          description: Include country code e.g. +91 98765 43210
+        owner:
+          title: Owning team
+          type: string
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+  steps:
+    - id: fetch-template
+      name: Populate customer files
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          customerName: ${{ parameters.customerName }}
+          address: ${{ parameters.address }}
+          phoneNumber: ${{ parameters.phoneNumber }}
+          owner: ${{ parameters.owner }}
+    - id: publish
+      name: Create GitHub repository
+      action: publish:github
+      input:
+        allowedHosts:
+          - github.com
+        description: Customer record for ${{ parameters.customerName }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+        repoVisibility: private
+    - id: register
+      name: Register customer in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+  output:
+    links:
+      - title: GitHub repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+        icon: github
+      - title: View in Catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
