@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.customerName | lower | replace(" ", "-") }}
+  title: ${{ values.customerName }}
+  description: Customer record for ${{ values.customerName }}
+  annotations:
+    customer.io/phone-number: ${{ values.phoneNumber }}
+    customer.io/address: ${{ values.address }}
+    customer.io/created-via-template: "true"
+  labels:
+    type: customer
+spec:
+  type: customer
+  lifecycle: production
+  owner: ${{ values.owner }}
